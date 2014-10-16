@@ -1,0 +1,59 @@
+#  csdemo\makefile 1995-04-11 - 1995-10-26 mjb
+
+.SUFFIXES:
+
+#  Constants  -------------------------------------------------------------
+
+TSERVER_VERSION = 0
+TSERVER_PATCHLEVEL = 0
+
+!ifdef DEBUG
+ICCOPT_DEBUG = /d__demo_debug /ti
+ILINKOPT_DEBUG = /de
+!else
+!ifdef OPTIMIZE
+ICCOPT_OPTIMIZE = /dNDEBUG /o
+!endif
+!endif
+
+!ifdef DIAGNOSTICS
+#ICCOPT_DIAGNOSTICS = /kbcepr /w3    <- C Set++ flags.  Use /w... for Visual Age.
+ICCOPT_DIAGNOSTICS = /wcnd+cns+cnv+enu+gen+ord+par+pro+ret+trd+und+use+ /w3
+!else
+ICCOPT_DIAGNOSTICS = /wcnd-
+!endif
+
+ICCOPT_COMMON = /dTSERVER_VERSION=$(TSERVER_VERSION) /dTSERVER_PATCHLEVEL=$(TSERVER_PATCHLEVEL) /gm $(ICCOPT_DEBUG) $(ICCOPT_DIAGNOSTICS) $(ICCOPT_OPTIMIZE)
+
+#  Inference rules  -------------------------------------------------------
+
+#  Default target  --------------------------------------------------------
+
+default : production
+
+#  Primary targets  -------------------------------------------------------
+
+clean :
+    -del 2>nul *.obj
+
+cleaner : clean
+    -del 2>nul *.exe
+
+debug :
+    $(MAKE) /nologo DEBUG= DIAGNOSTICS= tserver
+
+production :
+    $(MAKE) /nologo OPTIMIZE= tserver
+
+sterile : cleaner
+    -del 2>nul nmake.* *.out
+
+tserver : tserver.exe
+
+#  Secondary targets  -----------------------------------------------------
+
+tserver.exe : tserver.obj
+    icc /b"/noi /nol /pm:vio /st:8192 $(ILINKOPT_DEBUG)" /q tserver.obj
+
+tserver.obj : tserver.c
+    icc /c /q $(ICCOPT_COMMON) tserver.c
